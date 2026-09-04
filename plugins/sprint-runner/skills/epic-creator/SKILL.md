@@ -59,8 +59,21 @@ The coordinator's intent: `$ARGUMENTS`
      this, or is the goal too vague to know when it's done?
 
    Surface what you find as direct, specific pushback — not a vague "any
-   concerns?" Name the actual edge case and ask how it should behave. If a
-   genuine search turns up nothing worth raising, say so explicitly
+   concerns?" — and keep the two kinds separate, labeled, so the coordinator
+   knows what's being asked of them:
+   - **Gaps** — a concrete problem you can point to: a missing dependency, a
+     contradiction with an existing epic, a case the stated goal doesn't
+     cover. Back every one with evidence — quote the line it conflicts with,
+     name the piece that's missing. If you can't point to the specific thing
+     that's wrong, it isn't a gap.
+   - **Ambiguities** — the intent genuinely doesn't say enough to draft with
+     confidence (which role, whose data, what happens on conflict). Ask the
+     question directly. Don't guess at what the coordinator probably meant
+     and don't present your guess as if it were the finding — if you're
+     inferring intent rather than pointing at something concrete, that's an
+     ambiguity to ask about, not a gap to report.
+
+   If a genuine search turns up nothing worth raising, say so explicitly
    ("checked X/Y/Z, no gaps found") rather than silently skipping the step —
    but that should be the exception, not the default.
 
