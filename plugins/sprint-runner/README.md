@@ -20,10 +20,11 @@ every agent is told to read it first.
 
 ## Install
 
-Once, per machine — register this repo as a local marketplace:
+Once, per machine — register this repo as a marketplace:
 ```bash
-claude plugin marketplace add /Users/fabian.fernandez/Projects/work/dev-setup
+claude plugin marketplace add FabianFdz/dev-setup
 ```
+(or, working from a local clone: `claude plugin marketplace add /path/to/dev-setup`)
 
 Then, in any project you want it in:
 ```bash
