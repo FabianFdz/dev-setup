@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://epic-sprint/schemas/handoff.schema.json",
+  "title": "Handoff",
+  "description": "Common envelope for all agent handoffs. Keep in sync with scripts/lib/handoff.js (the source of truth for transitions). Payload is intentionally lax.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sprint", "from", "to", "status", "timestamp", "payload"],
+  "properties": {
+    "sprint": { "type": "integer", "minimum": 0 },
+    "from": { "$ref": "#/$defs/agent" },
+    "to": { "$ref": "#/$defs/agent" },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "approved", "rejected"]
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "payload": { "type": "object" }
+  },
+  "$defs": {
+    "agent": {
+      "type": "string",
+      "enum": ["planner", "architect", "coder", "reviewer", "documenter", "human"]
+    }
+  }
+}

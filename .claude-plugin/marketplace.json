@@ -1,0 +1,13 @@
+{
+  "name": "fabian-dev-setup",
+  "owner": {
+    "name": "Fabian Fernandez"
+  },
+  "plugins": [
+    {
+      "name": "epic-sprint",
+      "source": "./plugins/epic-sprint",
+      "description": "Epic-to-PR agent pipeline: /epic-creator drafts epics, /sprint runs planner -> architect -> coder -> reviewer -> documenter one step at a time."
+    }
+  ]
+}

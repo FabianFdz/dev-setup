@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://epic-sprint/schemas/status.schema.json",
+  "title": "SprintStatus",
+  "description": "Per-sprint status tracker, at .claude/handoffs/current/status.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sprint",
+    "plan",
+    "designPr",
+    "designMerged",
+    "tickets",
+    "docsUpdated",
+    "sprintStatus",
+    "updatedAt"
+  ],
+  "properties": {
+    "sprint": { "type": "integer", "minimum": 0 },
+    "plan": { "$ref": "#/$defs/phase" },
+    "designPr": { "type": ["string", "null"] },
+    "designMerged": {
+      "type": "string",
+      "enum": ["n/a", "pending", "done"]
+    },
+    "tickets": {
+      "type": "object",
+      "propertyNames": { "pattern": "^E[0-9]+-T[0-9]+$" },
+      "additionalProperties": { "$ref": "#/$defs/ticket" }
+    },
+    "docsUpdated": { "$ref": "#/$defs/phase" },
+    "sprintStatus": { "$ref": "#/$defs/phase" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "phase": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "done"]
+    },
+    "ticket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["design", "code", "codeReview", "status", "merged"],
+      "properties": {
+        "design": { "$ref": "#/$defs/phase" },
+        "code": { "$ref": "#/$defs/phase" },
+        "codeReview": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"]
+        },
+        "status": { "$ref": "#/$defs/phase" },
+        "merged": { "$ref": "#/$defs/phase" }
+      }
+    }
+  }
+}

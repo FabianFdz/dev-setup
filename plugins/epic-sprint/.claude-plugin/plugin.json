@@ -1,0 +1,8 @@
+{
+  "name": "epic-sprint",
+  "description": "Multi-agent epic pipeline for Claude Code. /epic-creator drafts an epic; /sprint runs it through planner -> architect -> coder -> reviewer -> documenter, one human-approved step at a time.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Fabian Fernandez"
+  }
+}
