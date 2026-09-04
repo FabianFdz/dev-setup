@@ -5,8 +5,8 @@
   },
   "plugins": [
     {
-      "name": "epic-sprint",
-      "source": "./plugins/epic-sprint",
+      "name": "sprint-runner",
+      "source": "./plugins/sprint-runner",
       "description": "Epic-to-PR agent pipeline: /epic-creator drafts epics, /sprint runs planner -> architect -> coder -> reviewer -> documenter one step at a time."
     }
   ]

@@ -45,6 +45,6 @@ process.stdin.on('end', () => {
 
   console.error(`Handoff validation FAILED for ${filePath}.`);
   for (const e of errors) console.error(`    - ${e}`);
-  console.error('It must conform to the epic-sprint handoff/status schema before the next agent runs. Fix the file and re-emit it.');
+  console.error('It must conform to the sprint-runner handoff/status schema before the next agent runs. Fix the file and re-emit it.');
   process.exit(2);
 });

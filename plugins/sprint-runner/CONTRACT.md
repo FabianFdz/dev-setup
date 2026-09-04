@@ -1,4 +1,4 @@
-# epic-sprint — Agent Contract
+# sprint-runner — Agent Contract
 
 Loaded by every agent in this plugin, every invocation, in every project it's
 enabled in. This file lives inside the plugin (`${CLAUDE_PLUGIN_ROOT}/CONTRACT.md`)

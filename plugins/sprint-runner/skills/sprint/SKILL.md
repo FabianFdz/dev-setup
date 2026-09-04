@@ -1,6 +1,6 @@
 ---
 name: sprint
-description: Advance the epic-sprint loop by exactly one step — reads current/status.json and every handoff in current/, decides what runs next, and acts on it.
+description: Advance the sprint-runner loop by exactly one step — reads current/status.json and every handoff in current/, decides what runs next, and acts on it.
 disable-model-invocation: true
 argument-hint: "[next]"
 allowed-tools: Bash(node:*), Bash(mkdir:*), Bash(git:*), Bash(gh:*), Read, Edit, Glob, Task

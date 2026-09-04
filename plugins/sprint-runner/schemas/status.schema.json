@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://epic-sprint/schemas/status.schema.json",
+  "$id": "https://sprint-runner/schemas/status.schema.json",
   "title": "SprintStatus",
   "description": "Per-sprint status tracker, at .claude/handoffs/current/status.json.",
   "type": "object",

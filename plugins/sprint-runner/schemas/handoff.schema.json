@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://epic-sprint/schemas/handoff.schema.json",
+  "$id": "https://sprint-runner/schemas/handoff.schema.json",
   "title": "Handoff",
   "description": "Common envelope for all agent handoffs. Keep in sync with scripts/lib/handoff.js (the source of truth for transitions). Payload is intentionally lax.",
   "type": "object",

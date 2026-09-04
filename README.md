@@ -14,7 +14,7 @@ claude plugin marketplace add FabianFdz/dev-setup
 
 Then install a plugin in any project:
 ```bash
-claude plugin install epic-sprint@fabian-dev-setup
+claude plugin install sprint-runner@fabian-dev-setup
 ```
 
 Update everything after pulling changes:
@@ -24,12 +24,12 @@ claude plugin marketplace update fabian-dev-setup
 
 ## Plugins
 
-- **[epic-sprint](plugins/epic-sprint/)** — turns a product epic into
+- **[sprint-runner](plugins/sprint-runner/)** — turns a product epic into
   shipped, reviewed PRs through a 5-agent pipeline. `/epic-creator` drafts
   the epic; `/sprint` advances it one human-approved step at a time through
   planner → architect → coder → reviewer → documenter. Works alongside any
   project's own `CLAUDE.md` without touching it — see the
-  [plugin README](plugins/epic-sprint/README.md) for how the pipeline and
+  [plugin README](plugins/sprint-runner/README.md) for how the pipeline and
   handoff protocol work.
 
 ## Layout
@@ -37,7 +37,7 @@ claude plugin marketplace update fabian-dev-setup
 ```
 .claude-plugin/marketplace.json   # marketplace manifest, lists the plugins below
 plugins/
-  epic-sprint/                    # one plugin = one self-contained directory
+  sprint-runner/                    # one plugin = one self-contained directory
 ```
 
 Adding a new plugin means creating `plugins/<name>/` with its own

@@ -1,4 +1,4 @@
-# epic-sprint
+# sprint-runner
 
 A Claude Code plugin that turns an epic into shipped, reviewed PRs through
 five agents:
@@ -27,7 +27,7 @@ claude plugin marketplace add /Users/fabian.fernandez/Projects/work/dev-setup
 
 Then, in any project you want it in:
 ```bash
-claude plugin install epic-sprint@fabian-dev-setup
+claude plugin install sprint-runner@fabian-dev-setup
 ```
 
 To pick up changes after editing this plugin:
