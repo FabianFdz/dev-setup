@@ -151,11 +151,19 @@ if (plannerToArchitect && plannerToArchitect.status === 'approved') {
 }
 
 // --- Anything still pending/in_progress? ------------------------------------------
+// No agent in this pipeline ever intentionally leaves a handoff file's
+// top-level `status` as "pending"/"in_progress" at rest — every agent writes
+// its outbound handoff synchronously with a terminal status ("approved" or
+// "rejected") once it's done. So reaching this file in this state is never a
+// live agent still working; it's a bookkeeping bug (usually a missing/wrong
+// status in the writing agent's own spec — see CONTRACT.md's "PR hygiene"
+// section on folding a bookkeeping fix into the open PR rather than treating
+// it as a real blocker).
 const files = fs.readdirSync(currentDir).filter((f) => f.endsWith('.json') && f !== 'status.json');
 for (const f of files) {
   const h = readJSON(f);
   if (h && (h.status === 'pending' || h.status === 'in_progress')) {
-    print({ action: 'stop', reason: `${f} is ${h.status} — agent still working` });
+    print({ action: 'stop', reason: `${f} has status "${h.status}", which no agent should leave at rest — likely a bookkeeping bug (wrong status field) in whichever agent wrote it, not a live agent still working. See CONTRACT.md's bookkeeping-fix guidance before treating this as a real blocker.` });
   }
 }
 
