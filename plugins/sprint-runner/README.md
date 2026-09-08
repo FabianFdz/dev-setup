@@ -11,8 +11,10 @@ five agents:
                     -> Documenter (docs + sprint history + closing PR)
 ```
 
-Everything is human-gated: `/sprint` advances exactly one step and always
-stops for you to approve or merge before continuing. Nothing auto-chains.
+`/sprint` runs the loop automatically, agent after agent, and only stops for
+you when there's a weighty reason: an open question, an error, or a PR that
+needs merging — never just because one agent finished and the next step is
+mechanically obvious.
 
 Works alongside your project's own `CLAUDE.md` — this plugin never reads or
 edits it. Its own rules live in `CONTRACT.md`, bundled inside the plugin, and
@@ -40,9 +42,10 @@ claude plugin marketplace update fabian-dev-setup
 
 ```
 /epic-creator add a "favorite desks" list users can star and filter by
-/sprint
-/sprint
-/sprint
+/sprint   # runs planner -> architect -> ... automatically, pausing only to
+          # ask you a question, report an error, or confirm a PR merge
+/sprint   # run again after each pause (a merge you confirmed, a question
+          # you resolved, or a sprint that just closed) to keep going
 ...
 ```
 

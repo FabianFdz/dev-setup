@@ -26,9 +26,10 @@ claude plugin marketplace update fabian-dev-setup
 
 - **[sprint-runner](plugins/sprint-runner/)** — turns a product epic into
   shipped, reviewed PRs through a 5-agent pipeline. `/epic-creator` drafts
-  the epic; `/sprint` advances it one human-approved step at a time through
-  planner → architect → coder → reviewer → documenter. Works alongside any
-  project's own `CLAUDE.md` without touching it — see the
+  the epic; `/sprint` runs it automatically through planner → architect →
+  coder → reviewer → documenter, stopping only for an open question, an
+  error, or a PR that needs merging. Works alongside any project's own
+  `CLAUDE.md` without touching it — see the
   [plugin README](plugins/sprint-runner/README.md) for how the pipeline and
   handoff protocol work.
 
