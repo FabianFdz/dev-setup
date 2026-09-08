@@ -32,7 +32,13 @@ owns them (via `/epic-creator`).
 
 ## Output
 Handoff JSON: `.claude/handoffs/current/planner-to-architect.json`
-  payload: `{ epic, sprint, tickets: [ids in this sprint], planPath: ".claude/handoffs/current/plan.md" }`
+```json
+{ "sprint": N, "from": "planner", "to": "architect", "status": "approved", "timestamp": "...", "payload": { "epic": "<epic-id>", "sprint": N, "tickets": ["<id>", "..."], "planPath": ".claude/handoffs/current/plan.md" } }
+```
+`status` is `"approved"` once `plan.md` is written and ready for the
+Architect — never `"pending"` or `"in_progress"`; there is no human-approval
+gate between Planner and Architect, so anything else stalls `/sprint`
+indefinitely (`next-step.js` only routes into the Architect on `"approved"`).
 File: `.claude/handoffs/current/plan.md`
 Also: update the epic's status in `docs/epics/epic-status.md`
 (`pending` → `planning`/`in_progress`).
