@@ -75,6 +75,20 @@ if (fs.existsSync(statusPath)) {
   status = raw;
 }
 
+// --- Open question from an agent -> always a hard stop for human input -----------
+// Checked before anything else: an agent hit a blocker and wrote here instead
+// of its outbound handoff, per CONTRACT.md's "On uncertainty". Its mere
+// presence must stop the loop on every future run, so the human resolving it
+// has to delete this file (not just answer it) before /sprint can proceed.
+const questionsPath = path.join(currentDir, 'questions.md');
+if (fs.existsSync(questionsPath)) {
+  print({
+    action: 'stop',
+    reason: 'questions.md exists — an agent needs human input before the loop can continue',
+    payload: { questionsPath: '.claude/handoffs/current/questions.md' },
+  });
+}
+
 /** Routes a single ticket from its current status.json fields. null = nothing
  *  ticket-specific to do right now (either blocked on Architect, or fully
  *  green and waiting on merge-confirm below). */

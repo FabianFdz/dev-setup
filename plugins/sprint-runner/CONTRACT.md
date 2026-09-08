@@ -26,15 +26,24 @@ Sprint close (after every ticket is done and merged):
   archives current/ -> sprint-{N}/)
 ```
 
-`/sprint` advances this by exactly one step per invocation and always stops
-for a human to merge or confirm before continuing. Nothing auto-chains.
+`/sprint` runs this loop automatically, agent after agent, and only stops for
+a human when there's a weighty reason: an open question (`questions.md`), an
+error (broken state, failed validation, a step the script can't route), or a
+PR that needs merging (`merge-confirm`). It never stops just because one
+agent finished and the next step is mechanically obvious. It does stop once
+a sprint fully closes (the Documenter has archived `current/`) rather than
+auto-starting the next sprint's Planner — that's its own `/sprint` call.
 
 ## On uncertainty
 
 When an agent is blocked or unsure, it appends the question to
 `.claude/handoffs/current/questions.md` and STOPS. Never assume, never guess,
-never proceed past a blocker. You (the human) resolve it by editing the
-relevant handoff/state and re-running `/sprint`.
+never proceed past a blocker. `questions.md`'s mere presence is a hard stop
+for every future `/sprint` run — not just when it's written, but every run
+after that too — so resolving it means both editing the relevant
+handoff/state AND deleting `questions.md` before re-running `/sprint`;
+leaving it in place re-stops the loop even after the underlying issue is
+fixed.
 
 ## Reviewability
 
