@@ -75,18 +75,27 @@ if (fs.existsSync(statusPath)) {
   status = raw;
 }
 
-// --- Open question from an agent -> always a hard stop for human input -----------
+// --- Open question from an agent -> ask the human directly, right now ------------
 // Checked before anything else: an agent hit a blocker and wrote here instead
-// of its outbound handoff, per CONTRACT.md's "On uncertainty". Its mere
-// presence must stop the loop on every future run, so the human resolving it
-// has to delete this file (not just answer it) before /sprint can proceed.
+// of its outbound handoff, per CONTRACT.md's "On uncertainty". Unanswered,
+// this is always a hard stop — but not a dead end: /sprint asks the human
+// the question directly (see skills/sprint/SKILL.md) instead of just
+// reporting that the file exists. Once a "## Answer" section has real
+// content, this check stops firing and falls through to normal routing,
+// which naturally re-selects the same agent that was blocked (its outbound
+// handoff still doesn't exist) so it can consume the answer and continue.
 const questionsPath = path.join(currentDir, 'questions.md');
 if (fs.existsSync(questionsPath)) {
-  print({
-    action: 'stop',
-    reason: 'questions.md exists — an agent needs human input before the loop can continue',
-    payload: { questionsPath: '.claude/handoffs/current/questions.md' },
-  });
+  const questionsContent = fs.readFileSync(questionsPath, 'utf8');
+  const answerMatch = questionsContent.match(/^##\s*Answer\s*\n([\s\S]*)$/im);
+  const isAnswered = Boolean(answerMatch && answerMatch[1].trim().length > 0);
+  if (!isAnswered) {
+    print({
+      action: 'ask-question',
+      payload: { questionsPath: '.claude/handoffs/current/questions.md', question: questionsContent },
+      reason: 'an agent is blocked and needs a human answer before the loop can continue',
+    });
+  }
 }
 
 /** Routes a single ticket from its current status.json fields. null = nothing
@@ -150,7 +159,15 @@ if (reviewerToHuman && reviewerToHuman.status === 'approved' && !alreadyMerged(r
 
 // --- All tickets done AND merged -> close the sprint (Documenter) ----------------
 const humanToDocumenter = readJSON('human-to-documenter.json');
-if (status && !humanToDocumenter && !readJSON('documenter-to-human.json')) {
+const documenterToHuman = readJSON('documenter-to-human.json');
+if (status && humanToDocumenter && !documenterToHuman) {
+  // human-to-documenter.json already exists but the Documenter hasn't
+  // finished — re-run it rather than falling through to the checks below
+  // (which would otherwise wrongly re-trigger the Architect once an
+  // answered questions.md unblocks a Documenter that stopped mid-close).
+  print({ action: 'run-agent', agent: 'documenter', reason: 'human-to-documenter.json pending — documenter still needs to finish' });
+}
+if (status && !humanToDocumenter && !documenterToHuman) {
   const tickets = Object.values(status.tickets);
   const allDone = tickets.length > 0 && tickets.every((t) => t.status === 'done' && t.merged === 'done');
   if (allDone) {

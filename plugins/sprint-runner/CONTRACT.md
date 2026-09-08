@@ -27,23 +27,39 @@ Sprint close (after every ticket is done and merged):
 ```
 
 `/sprint` runs this loop automatically, agent after agent, and only stops for
-a human when there's a weighty reason: an open question (`questions.md`), an
-error (broken state, failed validation, a step the script can't route), or a
-PR that needs merging (`merge-confirm`). It never stops just because one
-agent finished and the next step is mechanically obvious. It does stop once
-a sprint fully closes (the Documenter has archived `current/`) rather than
-auto-starting the next sprint's Planner — that's its own `/sprint` call.
+a human when there's a weighty reason: an open question — which it asks you
+directly, in the same run, not by pointing you at a file — an error (broken
+state, failed validation, a step the script can't route), or a PR that needs
+merging (`merge-confirm`). It never stops just because one agent finished
+and the next step is mechanically obvious. It does stop once a sprint fully
+closes (the Documenter has archived `current/`) rather than auto-starting
+the next sprint's Planner — that's its own `/sprint` call.
 
 ## On uncertainty
 
-When an agent is blocked or unsure, it appends the question to
-`.claude/handoffs/current/questions.md` and STOPS. Never assume, never guess,
-never proceed past a blocker. `questions.md`'s mere presence is a hard stop
-for every future `/sprint` run — not just when it's written, but every run
-after that too — so resolving it means both editing the relevant
-handoff/state AND deleting `questions.md` before re-running `/sprint`;
-leaving it in place re-stops the loop even after the underlying issue is
-fixed.
+When you're blocked or unsure, write to
+`.claude/handoffs/current/questions.md` and STOP — never assume, never
+guess, never proceed past a blocker:
+```markdown
+# Question — {your agent name}
+
+{the blocking question, in plain language — enough context for someone with
+no memory of this sprint to answer it}
+
+## Answer
+```
+You do not ask the human yourself — `/sprint` does. An unanswered
+`questions.md` is always a hard stop: `/sprint` reads it, asks the human the
+question directly in that same run, and once they answer, writes the answer
+into the `## Answer` section and re-runs you.
+
+**On every invocation, before anything else:** check whether
+`questions.md` exists with a non-empty `## Answer` section.
+- If so, that's the human's answer to a blocker you (or an earlier attempt)
+  already raised — use it, then delete `questions.md` once you've
+  incorporated the answer, before doing anything else this turn.
+- If it exists but `## Answer` is still empty, your question hasn't been
+  answered yet — do not raise a new one on top of it; STOP again unchanged.
 
 ## Reviewability
 
