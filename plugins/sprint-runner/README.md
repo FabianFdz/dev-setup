@@ -33,7 +33,13 @@ Then, in any project you want it in:
 claude plugin install sprint-runner@fabian-dev-setup
 ```
 
-To pick up changes after editing this plugin:
+To always stay on the latest version, enable auto-update for the
+marketplace (off by default for third-party marketplaces): `/plugin` ->
+**Marketplaces** -> `fabian-dev-setup` -> **Enable auto-update**. Claude Code
+then checks in the background and prompts `/reload-plugins` when there's a
+new version.
+
+Otherwise, update manually:
 ```bash
 claude plugin marketplace update fabian-dev-setup
 ```
