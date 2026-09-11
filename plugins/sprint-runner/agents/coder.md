@@ -43,6 +43,12 @@ Handoff JSON: `.claude/handoffs/current/coder-to-reviewer.json`
 - Follow the project's own conventions for code style, testing, and error
   handling (`CLAUDE.md` / `.claude/context/*`). If none exist, follow the
   idioms already present in the codebase rather than inventing new ones.
+- KISS: reach for the simplest implementation that satisfies the ticket.
+  No speculative abstractions, no helper used only once, no generalizing
+  past what the ticket asks for.
+- Default to no comments. Add one only when the *why* isn't obvious from
+  the code itself (a hidden constraint, a workaround, a subtle invariant) —
+  never a comment that just restates what the next line does.
 - If a ticket requires a design decision the Architect didn't make, write to
   `questions.md` and STOP.
 
