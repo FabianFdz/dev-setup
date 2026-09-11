@@ -3,30 +3,22 @@
 /**
  * Deterministic "what's next" resolver for the /sprint command.
  *
- * The ticket-cycle portion (code -> review) is driven by
- * <project>/.claude/handoffs/current/status.json, NOT by walking handoff
- * files in priority order. Handoff files are an append-only event log —
- * every redo (a rejection, then a fix) leaves the old file behind, so
- * "which file is highest priority" breaks the moment a ticket gets rejected
- * and redone. status.json's per-ticket fields don't have that problem —
- * each agent overwrites its own field in place. Handoff files are still
- * read, but only for payload detail once status.json has already said which
- * phase is next.
+ * Ticket routing (design -> code -> review -> merge) is driven by
+ * status.json, not by handoff files in priority order — handoff files are
+ * an append-only log, so "highest priority file" breaks the moment a
+ * ticket is rejected and redone. status.json's per-ticket fields don't
+ * have that problem: each agent overwrites its own field in place.
  *
- * merge-confirm decisions read status.json's ticket.merged field before
- * re-suggesting a merge — ticket.status: 'done' alone means the Ticket DoD
- * is met (Reviewer's gate), NOT that the PR was merged, and it never flips
- * back, so it can't be the "already merged" signal. The /sprint skill sets
- * ticket.merged: 'done' right after it runs the merge command(s) the human
- * confirmed. Once every ticket is both status: 'done' and merged: 'done',
- * this script recommends the Documenter (sprint close).
+ * ticket.status: 'done' means the Reviewer approved it — NOT that the PR
+ * merged. ticket.merged: 'done' is set by /sprint right after the human
+ * confirms the merge. Once every ticket is done and merged, this
+ * recommends the Documenter (sprint close).
  *
- * This script does NOT launch agents, write handoffs, or touch git — it
- * only reads state and prints one JSON decision to stdout. The /sprint
- * skill runs it and performs whatever it says.
+ * Read-only: prints one JSON decision to stdout. Doesn't launch agents,
+ * write handoffs, or touch git — /sprint does whatever the decision says.
  *
  * Usage: node next-step.js
- * Exit codes: 0 = a decision was printed to stdout · 1 = error reading state.
+ * Exit codes: 0 = decision printed · 1 = error reading state.
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -76,20 +68,13 @@ if (fs.existsSync(statusPath)) {
 }
 
 // --- Open question from an agent -> ask the human directly, right now ------------
-// Checked before anything else: an agent hit a blocker and wrote here instead
-// of its outbound handoff, per CONTRACT.md's "On uncertainty". Unanswered,
-// this is always a hard stop — but not a dead end: /sprint asks the human
-// the question directly (see skills/sprint/SKILL.md) instead of just
-// reporting that the file exists. Once a "## Answer" section has real
-// content, this check stops firing and falls through to normal routing,
-// which naturally re-selects the same agent that was blocked (its outbound
-// handoff still doesn't exist) so it can consume the answer and continue.
+// Takes priority over everything else. Once answered, this stops firing and
+// falls through to normal routing, which re-selects the blocked agent.
 const questionsPath = path.join(currentDir, 'questions.md');
 if (fs.existsSync(questionsPath)) {
   const questionsContent = fs.readFileSync(questionsPath, 'utf8');
-  const answerMatch = questionsContent.match(/^##\s*Answer\s*\n([\s\S]*)$/im);
-  const isAnswered = Boolean(answerMatch && answerMatch[1].trim().length > 0);
-  if (!isAnswered) {
+  const answer = questionsContent.match(/^##\s*Answer\s*\n([\s\S]*)$/im)?.[1]?.trim();
+  if (!answer) {
     print({
       action: 'ask-question',
       payload: { questionsPath: '.claude/handoffs/current/questions.md', question: questionsContent },
@@ -98,9 +83,9 @@ if (fs.existsSync(questionsPath)) {
   }
 }
 
-/** Routes a single ticket from its current status.json fields. null = nothing
- *  ticket-specific to do right now (either blocked on Architect, or fully
- *  green and waiting on merge-confirm below). */
+/** Routes a single ticket from its status.json fields. null = nothing
+ *  ticket-specific to do (blocked on Architect, or green and waiting on
+ *  merge-confirm below). */
 function ticketDecision(id, t) {
   if (t.design !== 'done') return null; // Architect hasn't finished this ticket yet
 
@@ -109,8 +94,7 @@ function ticketDecision(id, t) {
   }
 
   if (t.codeReview === 'rejected') {
-    // Defensive only — coder.md resets code to "pending" on every redo, so
-    // this branch shouldn't be reachable with code === 'done'.
+    // Defensive only: coder.md resets code to "pending" on every redo.
     return { action: 'run-agent', agent: 'coder', reason: `${id}: rejected but code is still marked done — needs a fix` };
   }
 
@@ -142,29 +126,27 @@ if (status) {
   for (const [id, t] of Object.entries(status.tickets)) {
     const decision = ticketDecision(id, t);
     if (decision) print(decision);
-    if (t.status !== 'done') break; // this is the one in-flight ticket — don't look past it
+    // Stop at the first ticket that isn't done AND merged: still in-flight,
+    // or done but awaiting merge-confirm below.
+    if (t.status !== 'done' || t.merged !== 'done') break;
   }
 }
 
 // --- Merge confirmation (Reviewer already approved this ticket's PR) -------------
-function alreadyMerged(payload) {
-  const ticketId = payload && payload.ticket;
-  return Boolean(ticketId && status && status.tickets[ticketId] && status.tickets[ticketId].merged === 'done');
-}
-
 const reviewerToHuman = readJSON('reviewer-to-human.json');
-if (reviewerToHuman && reviewerToHuman.status === 'approved' && !alreadyMerged(reviewerToHuman.payload)) {
-  print({ action: 'merge-confirm', payload: reviewerToHuman.payload, reason: 'reviewer-to-human.json approved' });
+if (reviewerToHuman?.status === 'approved') {
+  const ticketId = reviewerToHuman.payload?.ticket;
+  const alreadyMerged = status?.tickets[ticketId]?.merged === 'done';
+  if (!alreadyMerged) {
+    print({ action: 'merge-confirm', payload: reviewerToHuman.payload, reason: 'reviewer-to-human.json approved' });
+  }
 }
 
 // --- All tickets done AND merged -> close the sprint (Documenter) ----------------
 const humanToDocumenter = readJSON('human-to-documenter.json');
 const documenterToHuman = readJSON('documenter-to-human.json');
 if (status && humanToDocumenter && !documenterToHuman) {
-  // human-to-documenter.json already exists but the Documenter hasn't
-  // finished — re-run it rather than falling through to the checks below
-  // (which would otherwise wrongly re-trigger the Architect once an
-  // answered questions.md unblocks a Documenter that stopped mid-close).
+  // Write already happened but the Documenter hasn't finished — re-run it.
   print({ action: 'run-agent', agent: 'documenter', reason: 'human-to-documenter.json pending — documenter still needs to finish' });
 }
 if (status && !humanToDocumenter && !documenterToHuman) {
@@ -177,24 +159,20 @@ if (status && !humanToDocumenter && !documenterToHuman) {
 
 // --- Route into Architect ---------------------------------------------------------
 const plannerToArchitect = readJSON('planner-to-architect.json');
-if (plannerToArchitect && plannerToArchitect.status === 'approved') {
+if (plannerToArchitect?.status === 'approved') {
   print({ action: 'run-agent', agent: 'architect', reason: 'planner-to-architect.json approved' });
 }
 
 // --- Anything still pending/in_progress? ------------------------------------------
-// No agent in this pipeline ever intentionally leaves a handoff file's
-// top-level `status` as "pending"/"in_progress" at rest — every agent writes
-// its outbound handoff synchronously with a terminal status ("approved" or
-// "rejected") once it's done. So reaching this file in this state is never a
-// live agent still working; it's a bookkeeping bug (usually a missing/wrong
-// status in the writing agent's own spec — see CONTRACT.md's "PR hygiene"
-// section on folding a bookkeeping fix into the open PR rather than treating
-// it as a real blocker).
+// No agent should leave a handoff at "pending"/"in_progress" at rest — every
+// agent writes its outbound handoff with a terminal status once it's done.
+// So this is a bookkeeping bug in whichever agent wrote it (see CONTRACT.md),
+// not a live agent still working.
 const files = fs.readdirSync(currentDir).filter((f) => f.endsWith('.json') && f !== 'status.json');
 for (const f of files) {
   const h = readJSON(f);
   if (h && (h.status === 'pending' || h.status === 'in_progress')) {
-    print({ action: 'stop', reason: `${f} has status "${h.status}", which no agent should leave at rest — likely a bookkeeping bug (wrong status field) in whichever agent wrote it, not a live agent still working. See CONTRACT.md's bookkeeping-fix guidance before treating this as a real blocker.` });
+    print({ action: 'stop', reason: `${f} has status "${h.status}", which no agent should leave at rest — likely a bookkeeping bug, not a live agent still working. See CONTRACT.md.` });
   }
 }
 
